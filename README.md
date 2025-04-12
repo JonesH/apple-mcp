@@ -4,6 +4,8 @@
 
 This is a collection of apple-native tools for the [MCP protocol](https://modelcontextprotocol.com/docs/mcp-protocol).
 
+> **Fork Note**: This fork adds Pages document manipulation capabilities via AppleScript integration.
+
 Here's a step-by-step video about how to set this up, with a demo. - https://x.com/DhravyaShah/status/1892694077679763671
 
 <a href="https://glama.ai/mcp/servers/gq2qg6kxtu">
@@ -80,6 +82,12 @@ npx -y @smithery/cli@latest install @Dhravya/apple-mcp --client cursor
   - Drop pins on the map
   - Create and list guides
   - Add places to guides
+- Pages: (Added in this fork)
+  - Insert/replace text in Pages documents
+  - Append text to existing documents
+  - Format paragraphs with alignment, font, and styles
+  - Insert new paragraphs at specific positions
+  - Create new documents with optional templates
 
 - TODO: Search and open photos in Apple Photos app
 - TODO: Search and open music in Apple Music app
@@ -102,7 +110,7 @@ Now, edit your `claude_desktop_config.json` with this:
   "mcpServers": {
     "apple-mcp": {
       "command": "bunx",
-      "args": ["@dhravya/apple-mcp@latest"]
+      "args": ["@jonesH/apple-mcp@latest"]
     }
   }
 }
@@ -124,10 +132,14 @@ find all the notes related to AI and send it to my girlfriend
 create a reminder to "Buy groceries" for tomorrow at 5pm
 ```
 
+```
+insert this executive summary into my Pages document
+```
+
 ## Local Development
 
 ```bash
-git clone https://github.com/dhravya/apple-mcp.git
+git clone https://github.com/JonesH/apple-mcp.git
 cd apple-mcp
 bun install
 bun run index.ts
