@@ -1,11 +1,9 @@
-import { execute } from '../utils/execute';
+import { execute } from '../../utils/execute';
 import { ToolDefinition } from '@modelcontextprotocol/sdk/server/types';
 
 const execAppleScript = async (script: string): Promise<{ status: string; output: string }> => {
   try {
-    return { status: 'success', output: (await execute('osascript', ['-e', script])).trim() };
-
-export default pagesTools;
+  return { status: 'success', output: (await execute('osascript', ['-e', script])).trim() };
   } catch (e: any) {
     return { status: 'error', output: e.message };
   }
@@ -151,4 +149,6 @@ const pagesTools: ToolDefinition[] = [
       end tell
     `)
   }
-];
+ ];
+ 
+ export default pagesTools;;

@@ -28,21 +28,23 @@ let reminders: typeof import('./utils/reminders').default | null = null;
 let webSearch: typeof import('./utils/webSearch').default | null = null;
 let calendar: typeof import('./utils/calendar').default | null = null;
 let maps: typeof import('./utils/maps').default | null = null;
+let pages: typeof import('./src/tools/pages').default | null = null;
 
 // Type map for module names to their types
 type ModuleMap = {
-  contacts: typeof import('./utils/contacts').default;
-  notes: typeof import('./utils/notes').default;
-  message: typeof import('./utils/message').default;
-  mail: typeof import('./utils/mail').default;
-  reminders: typeof import('./utils/reminders').default;
-  webSearch: typeof import('./utils/webSearch').default;
-  calendar: typeof import('./utils/calendar').default;
-  maps: typeof import('./utils/maps').default;
+contacts: typeof import('./utils/contacts').default;
+notes: typeof import('./utils/notes').default;
+message: typeof import('./utils/message').default;
+mail: typeof import('./utils/mail').default;
+reminders: typeof import('./utils/reminders').default;
+webSearch: typeof import('./utils/webSearch').default;
+calendar: typeof import('./utils/calendar').default;
+maps: typeof import('./utils/maps').default;
+pages: typeof import('./src/tools/pages').default;
 };
 
 // Helper function for lazy module loading
-async function loadModule<T extends 'contacts' | 'notes' | 'message' | 'mail' | 'reminders' | 'webSearch' | 'calendar' | 'maps'>(moduleName: T): Promise<ModuleMap[T]> {
+async function loadModule<T extends 'contacts' | 'notes' | 'message' | 'mail' | 'reminders' | 'webSearch' | 'calendar' | 'maps' | 'pages'>(moduleName: T): Promise<ModuleMap[T]> {
   if (safeModeFallback) {
     console.error(`Loading ${moduleName} module on demand (safe mode)...`);
   }
@@ -71,10 +73,13 @@ async function loadModule<T extends 'contacts' | 'notes' | 'message' | 'mail' | 
         if (!calendar) calendar = (await import('./utils/calendar')).default;
         return calendar as ModuleMap[T];
       case 'maps':
-        if (!maps) maps = (await import('./utils/maps')).default;
-        return maps as ModuleMap[T];
+      if (!maps) maps = (await import('./utils/maps')).default;
+      return maps as ModuleMap[T];
+      case 'pages':
+      if (!pages) pages = (await import('./src/tools/pages')).default;
+      return pages as ModuleMap[T];
       default:
-        throw new Error(`Unknown module: ${moduleName}`);
+      throw new Error(`Unknown module: ${moduleName}`);
     }
   } catch (e) {
     console.error(`Error loading module ${moduleName}:`, e);
@@ -131,6 +136,9 @@ async function attemptEagerLoading() {
     maps = (await import('./utils/maps')).default;
     console.error("- Maps module loaded successfully");
     
+    pages = (await import('./src/tools/pages')).default;
+    console.error("- Pages module loaded successfully");
+    
     // If we get here, clear the timeout and proceed with eager loading
     if (loadingTimeout) {
       clearTimeout(loadingTimeout);
@@ -162,6 +170,8 @@ async function attemptEagerLoading() {
     webSearch = null;
     calendar = null;
     maps = null;
+    pages = null;
+    pages = null;
     
     // Initialize the server in safe mode
     initServer();
@@ -889,6 +899,46 @@ end tell`;
           }
         }
         
+        case "pages": {
+        if (!isPagesArgs(args)) {
+        throw new Error("Invalid arguments for pages tool");
+        }
+        
+        try {
+        const pagesModule = await loadModule('pages');
+        
+        switch (args.operation) {
+        case "insert":
+        return await pagesModule.pages_insert_text({ text: args.text });
+        case "append":
+        return await pagesModule.pages_append_text({ text: args.text });
+        case "create":
+        return await pagesModule.pages_create_document({ text: args.text, template: args.template });
+        case "format":
+        return await pagesModule.pages_format_paragraph({ 
+        paragraph: args.paragraph,
+        alignment: args.alignment,
+        fontSize: args.fontSize,
+        fontName: args.fontName
+        });
+        case "paragraph":
+        return await pagesModule.pages_insert_paragraph({ text: args.text, position: args.position });
+        case "get":
+        return await pagesModule.pages_get_document_text();
+        default:
+        throw new Error(`Unknown pages operation: ${args.operation}`);
+        }
+        } catch (error) {
+        return {
+        content: [{
+        type: "text",
+        text: `Error in pages tool: ${error instanceof Error ? error.message : String(error)}`
+        }],
+        isError: true
+        };
+        }
+        }
+        
         case "maps": {
           if (!isMapsArgs(args)) {
             throw new Error("Invalid arguments for maps tool");
@@ -1330,6 +1380,58 @@ function isCalendarArgs(args: unknown): args is {
   }
 
   return true;
+}
+
+function isPagesArgs(args: unknown): args is {
+operation: "insert" | "append" | "create" | "format" | "paragraph" | "get";
+text?: string;
+template?: string;
+paragraph?: number;
+alignment?: string;
+fontSize?: number;
+fontName?: string;
+position?: string;
+} {
+if (typeof args !== "object" || args === null) {
+return false;
+}
+
+const { operation } = args as { operation?: unknown };
+if (typeof operation !== "string") {
+return false;
+}
+
+if (!['insert', 'append', 'create', 'format', 'paragraph', 'get'].includes(operation)) {
+return false;
+}
+
+// Check required fields per operation
+switch (operation) {
+case 'insert':
+case 'append':
+case 'paragraph':
+const { text } = args as { text?: unknown };
+if (typeof text !== 'string' || text === '') {
+return false;
+}
+
+if (operation === 'paragraph') {
+const { position } = args as { position?: unknown };
+if (typeof position !== 'string' || position === '') {
+return false;
+}
+}
+break;
+
+case 'format':
+const { paragraph } = args as { paragraph?: unknown };
+if (typeof paragraph !== 'number') {
+return false;
+}
+break;
+}
+
+return true;
 }
 
 function isMapsArgs(args: unknown): args is {

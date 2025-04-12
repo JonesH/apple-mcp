@@ -305,6 +305,50 @@ const MAPS_TOOL: Tool = {
   }
 };
 
-const tools = [CONTACTS_TOOL, NOTES_TOOL, MESSAGES_TOOL, MAIL_TOOL, REMINDERS_TOOL, WEB_SEARCH_TOOL, CALENDAR_TOOL, MAPS_TOOL];
+const PAGES_TOOL: Tool = {
+name: "pages",
+description: "Manipulate and create Pages documents",
+inputSchema: {
+type: "object",
+properties: {
+operation: {
+type: "string",
+description: "Operation to perform: 'insert', 'append', 'create', 'format', 'paragraph', 'get'",
+enum: ["insert", "append", "create", "format", "paragraph", "get"]
+},
+text: {
+type: "string",
+description: "Text to insert or append (required for insert, append, paragraph operations)"
+},
+template: {
+type: "string",
+description: "Template name to use (optional for create operation)"
+},
+paragraph: {
+type: "number",
+description: "Paragraph number to format (required for format operation)"
+},
+alignment: {
+type: "string",
+description: "Text alignment (optional for format operation): 'left', 'center', 'right', 'justify'"
+},
+fontSize: {
+type: "number",
+description: "Font size (optional for format operation)"
+},
+fontName: {
+type: "string",
+description: "Font name (optional for format operation)"
+},
+position: {
+type: "string",
+description: "Position to insert paragraph: 'beginning', 'end', 'after <n>' (required for paragraph operation)"
+}
+},
+required: ["operation"]
+}
+};
+
+const tools = [CONTACTS_TOOL, NOTES_TOOL, MESSAGES_TOOL, MAIL_TOOL, REMINDERS_TOOL, WEB_SEARCH_TOOL, CALENDAR_TOOL, MAPS_TOOL, PAGES_TOOL];
 
 export default tools;
